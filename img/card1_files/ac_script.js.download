@@ -1,0 +1,253 @@
+var $animation_elements;
+var $window;
+var $header;
+var mobileOpen = false;
+
+$(document).ready(function () {
+  // console.log('ready');
+  checkMutableForm();
+  setup();  
+  setupSlider();
+  $animation_elements = $('.block-animated');
+  $window = $(window);
+  $('#mobile').on('hidden.bs.collapse', function () {
+    setup();
+  }.bind(this));
+  $window.on('scroll resize', { elements: $animation_elements }, check_if_in_view);
+  $window.trigger('scroll');
+  setupIframeVideo();
+  _hrefListeners();
+  _tableWrapper();
+  _assistenzaRadioGroup();
+});
+
+function _assistenzaRadioGroup() {
+  $('input[name="helpType"]').click(function () {
+    var target = $(this).attr('data-target');
+    $('.tab-pane').addClass('d-none');
+    $(target).removeClass('d-none');
+  });
+  $('.help-choice input[name="helpType"]:checked').click();
+}
+
+function _tableWrapper() {
+  $('table').wrap('<div class="tabella"></div>');
+}
+
+function weChat() {
+  event.preventDefault();
+  var qrcode = $('.qrcode-wechat');
+  if (window.innerWidth >= 768 && qrcode && qrcode.length != 0) {
+    if (qrcode.hasClass('d-md-flex')) {
+      qrcode.addClass('d-none');
+      qrcode.removeClass('d-md-flex');
+    } else  {
+      qrcode.addClass('d-md-flex');
+      qrcode.removeClass('d-none');
+    }
+  }
+}
+
+function closeSliderWeChat() {
+  event.preventDefault();
+  var qrcode = $('.slidein-wechat');
+  if (qrcode && qrcode.length != 0) {
+    qrcode.remove();
+  }
+}
+
+function check_if_in_view(event) {
+  // console.log('animate');
+  sliderCtaFix();
+  
+  $header = $('header');
+  if($header && !mobileOpen) {
+    $('.article-feat-head, .servizio-feat-head').css({ marginTop: Math.ceil($header.outerHeight()) + 'px' });
+  }
+  var window_height = $window.outerHeight();
+  var window_top_position = $window.scrollTop();
+  var window_bottom_position = (window_top_position + window_height);
+  var zoom_range = { top: (-5 + window_top_position + window_height/2), bottom: (5 + window_top_position + window_height/2)};
+  
+  $.each(event.data.elements, function() {
+    var $element = $(this);
+    var element_height = $element.outerHeight();
+    var element_top_position = $element.offset().top;
+    var element_bottom_position = (element_top_position + element_height);
+ 
+    if ((element_bottom_position >= window_top_position) && (element_top_position <= window_bottom_position)) { 
+      // Animazioni
+      if($element.hasClass('block-animated')) { //block CTA
+        $element.addClass('in-view');
+        $element.find('.img-animated').addClass('in-view');
+      }
+      if($element.hasClass('article-items') || $element.hasClass('related-items')) { //Articoli|Items connessi, Title sections
+        $element.find('.article-item-text').addClass('in-view');
+        $element.find('.articolo-feat-image').addClass('in-view');
+        $element.find('.articolo-section').addClass('in-view');
+      }
+      if($element.hasClass('testimonials-animated') || $element.hasClass('testimonial-animated')) { //Testimonials
+        $element.addClass('in-view');
+      }
+      if($element.hasClass('hero-block-text-animated')) { //Hero block text
+        $element.addClass('in-view');
+      }
+      if($element.hasClass('history-item')) { //Hero block text
+        $element.find('.history-date-animated').addClass('in-view');
+        $element.find('.history-text-animated').addClass('in-view');
+      }
+    }
+    if ($element.hasClass('articolo-zoom') || $element.hasClass('articolo-pinned-zoom')) { //Zoom
+      if ((element_bottom_position >= zoom_range.top) && (element_top_position <= zoom_range.bottom)) { 
+          $element.addClass('in-view');
+      } else {
+        // Animazione in uscita
+        $element.removeClass('in-view');
+      }
+    }
+  });
+}
+
+function sliderCtaFix() {
+  var isMobile = !$('.fa_times').hasClass('d-none');
+  var slider = $('.slide-in .m-slide-in-cta.align-left');
+  if (slider && slider.length != 0 && !isMobile) {
+    $('.header-container').addClass('slider-fix');
+  } else {
+    $('.header-container').removeClass('slider-fix');
+  }
+}
+
+function setupIframeVideo() {
+  $('iframe[data-service=youtube]').css({margin: '2rem 0'});
+  $('iframe[data-service=youtube]').attr('width', '100%');
+}
+
+function setup() {
+  $header = $('header');
+  if($header) {
+    $('.article-feat-head, .servizio-feat-head').css({ marginTop: Math.ceil($header.outerHeight()) + 'px' });
+    $content = $('.main-section');
+    $content.css({ paddingTop: 2*$header.height() });
+  }
+}
+
+function _hrefListeners() {
+  $("#desktop a, #mobile a, #ac-menu-block a").click(function () {
+    document.cookie = "chip=;expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+  });
+}
+
+function resetCookieListener() {
+  $("a.lang_switcher_link").click(function () {
+    document.cookie = "chip=;expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+  });
+}
+
+function setupSlider() {
+  // console.log('slider');
+  $ssiw = $('.slick-slide-inner-wrapper');
+  if($ssiw) {
+    $src = $('.slick-slide-inner-wrapper img');
+    $src.each(function (i, el) {
+      _url = el.getAttribute('data-lazy');
+      $ssiw[i].style.backgroundImage = "url('"+_url+"')";
+    });
+  }
+}
+
+/* Mobile */
+function mobileMenuClick() {
+  mobileOpen = !mobileOpen;
+  $('.header-container').toggleClass('mobile-menu-wrapper');
+  $('html').toggleClass('overflow-hidden');
+  $('.fa_bars').toggleClass('d-none');
+  $('.fa_times').toggleClass('d-none');
+  $('#desktop ul').toggleClass('d-none');
+  $('.globe_class').toggleClass('d-none');
+  sliderCtaFix();
+}
+
+/*function hideMobileMenu() {
+  _mm = $('#mobile');
+  _hc = $('.header-container');
+  if(_mm) {
+    _mm.collapse('hide');
+    $('.fa_bars').removeClass('d-none');
+    $('.fa_times').addClass('d-none');
+  }
+  if(_hc) {
+    _hc.removeClass('mobile-menu-wrapper');
+    $('html').removeClass('overflow-y-hidden');
+  }
+  sliderCtaFix();
+}*/
+
+//Mutable form for evergreen browsers
+//browse file system: browseFS global
+var browseFS;
+function checkMutableForm () {
+  //console.log('MutationForm');
+  var mf = document.querySelector('#mutationForm');
+  if(mf) {
+    var config = { attributes: true, childList: true, subtree: true };
+    var callback = function(mutationsList, observer) {
+      for(var i = 0; i<mutationsList.length; i++) {
+        var mutation = mutationsList[i];
+        if (mutation.type == 'childList') {
+          browseFS = $('form input[type="file"]');
+          if(browseFS && browseFS.length != 0) {
+            observer.disconnect();
+            const _star = browseFS.attr('required')?'*':'';
+            browseFS.hide();
+            var _striEl = '<div class="d-block position-relative"><button class="file-selector text-truncate" onclick="_browseFS()" type="button">';
+            _striEl += browseFS.attr('name').split('_').join(' ').toLowerCase().replace(/^[\u00C0-\u1FFF\u2C00-\uD7FF\w]/g, function(letter) {return letter.toUpperCase(); }) + _star;
+            _striEl += '</button><i class="file-selector-icon material-icons">insert_drive_file</i></div>';
+            $(_striEl).insertAfter(browseFS);
+            break;
+          }
+        }
+      }
+        /*for(var mutation of mutationsList) {
+            if (mutation.type == 'childList') {
+              browseFS = $('form input[type="file"]');
+              if(browseFS && browseFS.length != 0) {
+                observer.disconnect();
+                const _star = browseFS.attr('required')?'*':'';
+                browseFS.hide();
+                $(`<div class="d-block position-relative">
+                    <button class="file-selector text-truncate" onclick="_browseFS()" type="button">
+                    ${browseFS.attr('name').split('_').join(' ').toLowerCase().replace(/^[\u00C0-\u1FFF\u2C00-\uD7FF\w]/g, function(letter) {    
+                        return letter.toUpperCase();
+                    }) + _star}</button>
+                    <i class="file-selector-icon material-icons">insert_drive_file</i>
+                  </div>`).insertAfter(browseFS);
+                break;
+              }
+            }
+        }*/
+    }
+
+    var observer = new MutationObserver(callback);
+    observer.observe(mf, config);
+  }
+}
+
+function _browseFS() {
+  // console.log('_browseFS');
+  if(browseFS && browseFS.length != 0) {
+    browseFS.on('change', function(event) {
+      if(event.currentTarget.files && event.currentTarget.files.length != 0) {
+        var fs = $('button.file-selector');
+        fs?fs.html(event.currentTarget.files[0].name):null;
+      }
+    });
+    browseFS.trigger('click');
+  }
+}
+
+function _slideToAnchor(anchor) {
+  var target_offset = $(anchor).offset();
+  var target_top = target_offset.top - $('header').height();
+  $('html, body').animate({scrollTop: target_top}, 500);
+}

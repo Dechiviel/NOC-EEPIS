@@ -1,0 +1,42 @@
+function domReady(fn) {
+  document.addEventListener("DOMContentLoaded", fn);
+  if (document.readyState === "interactive" || document.readyState === "complete" ) {
+    fn();
+  }
+}
+domReady(function(event) {
+  console.log('ACelli Cookie Consent');
+  hsCookieListener();
+});
+function hsCookieListener() {
+  var _hsp = window._hsp = window._hsp || [];
+  _hsp.push(['addPrivacyConsentListener', function(consent) {
+    if (getCookieHS() === undefined) {
+      reload();
+    }
+  }]);
+}
+
+function getCookieHS() {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; __hs_cookie_cat_pref=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function hsCookieConsent() {
+  var _hsp = window._hsp = window._hsp || [];
+  _hsp.push(['showBanner']);
+  setTimeout(function() {
+    hsCookieConsentListener();
+  });
+}
+
+function hsCookieConsentListener() {
+  document.querySelector('#hs-modal-save-settings, #hs-modal-accept-all').removeEventListener('click', reload);
+  document.querySelector('#hs-modal-save-settings, #hs-modal-accept-all').addEventListener('click', reload);
+}
+
+function reload() {
+  console.log('Cookie policy updated!');
+  location.reload();
+}
